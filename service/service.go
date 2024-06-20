@@ -1,5 +1,7 @@
 package service
 
+import "RateMonoticScheduler/service/core"
+
 type Service struct {
 }
 
@@ -8,5 +10,6 @@ func NewService() *Service {
 }
 
 func (s *Service) Start() {
+	core.NewScheduler(1, 10)
 
 }
