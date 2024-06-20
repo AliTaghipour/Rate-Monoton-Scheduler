@@ -15,16 +15,16 @@ func NewService() *Service {
 func (s *Service) Start() {
 	tasks := []*model.Task{
 		{
-			Period:   15,
-			Duration: 1,
+			Period:   5,
+			Duration: 3,
 		},
 		{
-			Period:   10,
-			Duration: 0.5,
+			Period:   7,
+			Duration: 0.9,
 		},
 		{
-			Period:   20,
-			Duration: 1,
+			Period:   11,
+			Duration: 2,
 		},
 	}
 	taskChan := core.NewScheduler(1, 10)

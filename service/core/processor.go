@@ -40,13 +40,13 @@ func (s *Processor) process() {
 	}()
 
 	go func() {
-		ticker := time.NewTicker(10 * time.Millisecond)
+		ticker := time.NewTicker(1 * time.Millisecond)
 		for {
 			select {
 			case <-ticker.C:
 				s.lock.Lock()
 				if s.currentTask != nil && s.currentTask.Duration > 0 {
-					s.currentTask.Duration -= 0.01
+					s.currentTask.Duration -= 0.001
 					if s.currentTask.Duration <= 0 {
 						fmt.Printf("processor [%d] - finished task [%d] \n", s.id, s.currentTask.Id)
 						s.doneChannel <- DoneMessage{
@@ -56,7 +56,7 @@ func (s *Processor) process() {
 					}
 				}
 
-				if (s.currentTask == nil || s.currentTask.Duration <= 0) && newTask != nil && newTask.Duration > 0 {
+				if newTask != nil && (s.currentTask == nil || s.currentTask.Id != newTask.Id) {
 					previousId := 0
 					if s.currentTask != nil {
 						previousId = s.currentTask.Id
