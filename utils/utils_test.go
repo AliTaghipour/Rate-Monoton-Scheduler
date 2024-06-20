@@ -14,7 +14,7 @@ func TestSortedList(t *testing.T) {
 		task4 = &model.Task{Id: 4, Period: 4}
 	)
 
-	taskHandler := NewSortedTaskHandlerImpl()
+	taskHandler := NewSortedTaskHandlerImpl(100)
 
 	taskHandler.AddTask(task2)
 	taskHandler.AddTask(task3)
@@ -30,9 +30,12 @@ func TestSortedList(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, task4, task)
 
-	task, err = taskHandler.PopFirstTask()
+	task, err = taskHandler.GetTaskByID(2)
 	assert.Nil(t, err)
 	assert.Equal(t, task2, task)
+
+	task, err = taskHandler.GetTaskByID(2)
+	assert.NotNil(t, err)
 
 	task, err = taskHandler.PopFirstTask()
 	assert.Nil(t, err)
