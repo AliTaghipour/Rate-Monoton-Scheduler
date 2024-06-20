@@ -24,9 +24,9 @@ type SortedTaskHandlerImpl struct {
 func NewSortedTaskHandlerImpl(size int) SortedTaskHandler {
 	var freeProcessorIds []int
 	for i := 0; i < size; i++ {
-		freeProcessorIds = append(freeProcessorIds, i)
+		freeProcessorIds = append(freeProcessorIds, i+1)
 	}
-	return &SortedTaskHandlerImpl{freeProcessorIds: freeProcessorIds}
+	return &SortedTaskHandlerImpl{size: size, freeProcessorIds: freeProcessorIds}
 }
 
 func (s *SortedTaskHandlerImpl) ReplaceTask(task *model.Task, taskId int) {

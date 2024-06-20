@@ -3,7 +3,10 @@ package core
 import (
 	"RateMonoticScheduler/model"
 	"RateMonoticScheduler/utils"
+	"fmt"
 )
+
+const scope = "scheduler"
 
 type Scheduler struct {
 	workerCount   int
@@ -21,12 +24,13 @@ func NewScheduler(workerCount int, channelSize int) chan *model.Task {
 	doneChannel := make(chan DoneMessage)
 
 	result := &Scheduler{
-		workerCount:  workerCount,
-		channelSize:  channelSize,
-		taskChan:     channel,
-		doneChannel:  doneChannel,
-		waitingTasks: utils.NewSortedTaskHandlerImpl(channelSize),
-		runningTasks: utils.NewSortedTaskHandlerImpl(workerCount),
+		workerCount:   workerCount,
+		channelSize:   channelSize,
+		taskChan:      channel,
+		doneChannel:   doneChannel,
+		processorsMap: make(map[int]*Processor),
+		waitingTasks:  utils.NewSortedTaskHandlerImpl(channelSize),
+		runningTasks:  utils.NewSortedTaskHandlerImpl(workerCount),
 	}
 
 	go result.runScheduler()
@@ -49,12 +53,14 @@ func (s *Scheduler) runScheduler() {
 	for {
 		select {
 		case task := <-s.taskChan:
+			fmt.Printf("[%s] - new task - id [%d] - period [%d]\n", scope, task.Id, task.Period)
 			s.processTask(task)
 		case message := <-s.doneChannel:
+			fmt.Printf("[%s] - done message received - task id [%d] - processor id [%d]\n", scope, message.taskId, message.processorId)
 			task, err := s.waitingTasks.PopFirstTask()
 			if err == nil {
 				s.runningTasks.ReplaceTask(task, message.taskId)
-				s.runTask(task)
+				s.processorsMap[task.ProcessorId].taskChannel <- task
 			}
 
 		default:
@@ -64,17 +70,17 @@ func (s *Scheduler) runScheduler() {
 }
 
 func (s *Scheduler) processTask(task *model.Task) {
-	result := s.runningTasks.AddTask(task)
+	result := s.runTask(task)
 	if result == task {
+		fmt.Printf("[%s] - task added to waiting - id [%d] - period [%d]\n", scope, task.Id, task.Period)
 		s.waitingTasks.AddTask(task)
-	} else {
-		s.runTask(task)
 	}
 }
 
-func (s *Scheduler) runTask(task *model.Task) {
+func (s *Scheduler) runTask(task *model.Task) *model.Task {
 	result := s.runningTasks.AddTask(task)
 	if result != task {
 		s.processorsMap[task.ProcessorId].taskChannel <- task
 	}
+	return result
 }

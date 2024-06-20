@@ -31,6 +31,7 @@ func (s *Processor) process() {
 		for {
 			select {
 			case task := <-s.taskChannel:
+				fmt.Printf("processor [%d] - new task [%d]\n", s.id, task.Id)
 				newTask = task
 			default:
 
@@ -45,7 +46,6 @@ func (s *Processor) process() {
 			case <-ticker.C:
 				s.lock.Lock()
 				if s.currentTask != nil && s.currentTask.Duration > 0 {
-					fmt.Printf("processor [%d] - processed task with id [%d]\n", s.id, s.currentTask.Id)
 					s.currentTask.Duration -= 0.01
 					if s.currentTask.Duration <= 0 {
 						fmt.Printf("processor [%d] - finished task [%d] \n", s.id, s.currentTask.Id)
@@ -57,11 +57,16 @@ func (s *Processor) process() {
 				}
 
 				if (s.currentTask == nil || s.currentTask.Duration <= 0) && newTask != nil && newTask.Duration > 0 {
-					fmt.Printf("processor [%d] - new task with id [%d] took place of task [%d]\n", s.id, newTask.Id, s.currentTask.Id)
+					previousId := 0
+					if s.currentTask != nil {
+						previousId = s.currentTask.Id
+					}
 					s.currentTask = newTask
+					fmt.Printf("processor [%d] - new task with id [%d] took place of task [%d]\n", s.id, newTask.Id, previousId)
 
 				}
 				s.lock.Unlock()
+				break
 
 			default:
 
